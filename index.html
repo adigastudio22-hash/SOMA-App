@@ -1,0 +1,133 @@
+
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOMA - הרשמה וקביעת תור</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f5f2; color: #4a4a4a; text-align: center; padding: 20px; }
+        .container { max-width: 450px; background: white; padding: 30px; border-radius: 20px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .logo { max-width: 180px; height: auto; margin-bottom: 10px; border-radius: 10px; }
+        h1 { color: #7c6a61; margin-bottom: 5px; letter-spacing: 2px; font-size: 28px; }
+        p.subtitle { font-style: italic; margin-bottom: 25px; color: #a08d84; font-size: 16px; }
+        label { display: block; text-align: right; margin-top: 15px; font-weight: bold; font-size: 14px; }
+        select, input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        button { background-color: #25D366; color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        button:hover { background-color: #1ea952; transform: translateY(-2px); }
+        .hidden { display: none; }
+        .workshop-box { background-color: #fdfaf7; padding: 10px; border-radius: 10px; border: 1px dashed #d1c7c2; margin-top: 10px; }
+        hr { margin-top: 20px; border: 0; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img src="https://drive.google.com/thumbnail?id=1jO5Fr6I0JNvZBJSdo8Od-kPH5F2lXAcD&sz=w500" alt="SOMA Logo" class="logo" onerror="this.style.display='none'">
+    <h1>SOMA</h1>
+    <p class="subtitle">תנועת הגוף הרגשית</p>
+
+    <label>סוג המפגש:</label>
+    <select id="service" onchange="updateUI()">
+        <option value="">-- מה את מבקשת היום? --</option>
+        <option value="טיפול אישי">טיפול אישי (סומטי)</option>
+        <option value="שיעור קבוצתי">שיעור קבוצתי</option>
+        <option value="סדנה או קורס">סדנה או קורס</option>
+    </select>
+
+    <div id="workshop-info" class="hidden workshop-box">
+        <label>בחרי סדנה/קורס:</label>
+        <select id="workshop-list">
+            <option value="בגוף אני מבינה">1. בגוף אני מבינה</option>
+            <option value="הבטן והאני">2. הבטן והאני</option>
+            <option value="קורס שפת ה-SOMA">3. קורס שפת ה-SOMA</option>
+        </select>
+    </div>
+
+    <label>בחרי יום:</label>
+    <input type="date" id="date" min="2026-01-18" onchange="updateHours()">
+
+    <label>בחרי שעה:</label>
+    <select id="time"><option value="">קודם בחרי שירות...</option></select>
+
+    <hr>
+
+    <label>שמך המלא:</label>
+    <input type="text" id="name" placeholder="איך קוראים לך?">
+
+    <label>כתובת אימייל:</label>
+    <input type="email" id="email" placeholder="email@example.com">
+
+    <button onclick="sendToWhatsApp()">שליחת בקשה ב-WhatsApp</button>
+</div>
+
+<script>
+    // נתוני מערכת השעות
+    const scheduleData = {
+        "טיפול אישי": {
+            0: ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"], // יום א'
+            1: ["10:00", "11:00", "12:00", "13:00", "14:00"], // יום ב'
+            3: ["13:00", "14:00", "15:00", "16:00", "17:00"], // יום ד'
+            4: ["10:00", "11:00", "12:00", "13:00", "14:00"]  // יום ה'
+        },
+        "שיעור קבוצתי": {
+            1: ["09:00 - 10:00"], // יום ב'
+            4: ["09:00 - 10:00"]  // יום ה'
+        }
+    };
+
+    function updateUI() {
+        const service = document.getElementById('service').value;
+        const workshopDiv = document.getElementById('workshop-info');
+        workshopDiv.classList.toggle('hidden', service !== "סדנה או קורס");
+        updateHours();
+    }
+
+    function updateHours() {
+        const service = document.getElementById('service').value;
+        const dateInput = document.getElementById('date').value;
+        const timeSelect = document.getElementById('time');
+        timeSelect.innerHTML = '<option value="">-- בחרי שעה --</option>';
+
+        if (!service) return;
+
+        if (service === "סדנה או קורס") {
+            ["בוקר (10:00-14:00)", "ערב (18:00-21:00)", "יום מלא"].forEach(h => {
+                let opt = document.createElement('option'); opt.value = h; opt.textContent = h; timeSelect.appendChild(opt);
+            });
+            return;
+        }
+
+        if (!dateInput) return;
+        const dayOfWeek = new Date(dateInput).getDay();
+        const hours = scheduleData[service] ? scheduleData[service][dayOfWeek] : null;
+
+        if (hours && hours.length > 0) {
+            hours.forEach(h => {
+                let opt = document.createElement('option'); opt.value = h; opt.textContent = h; timeSelect.appendChild(opt);
+            });
+        } else { 
+            timeSelect.innerHTML = '<option value="">אין שעות פנויות ביום זה</option>'; 
+        }
+    }
+
+    function sendToWhatsApp() {
+        const phoneNumber = "972524871080"; 
+        const service = document.getElementById('service').value;
+        const workshop = document.getElementById('workshop-list').value;
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+
+        if (!service || !date || !time || !name || !email) { 
+            alert("אנא מלאי את כל הפרטים"); 
+            return; 
+        }
+
+        let sText = service === "סדנה או קורס" ? `סדנת "${workshop}"` : service;
+        const msg = `היי, אני מעוניינת להירשם ל-SOMA:%0A*שם:* ${name}%0A*אימייל:* ${email}%0A*שירות:* ${sText}%0A*תאריך:* ${date}%0A*שעה:* ${time}`;
+        window.open(`https://wa.me/${phoneNumber}?text=${msg}`, '_blank');
+    }
+</script>
+</body>
+</html>
